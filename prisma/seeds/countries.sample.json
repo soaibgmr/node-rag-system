@@ -1,0 +1,7 @@
+[
+  { "name": "United States", "code": "US", "codeIso3": "USA" },
+  { "name": "Canada", "code": "CA", "codeIso3": "CAN" },
+  { "name": "United Kingdom", "code": "GB", "codeIso3": "GBR" },
+  { "name": "Australia", "code": "AU", "codeIso3": "AUS" },
+  { "name": "India", "code": "IN", "codeIso3": "IND" }
+]

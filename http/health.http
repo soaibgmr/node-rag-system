@@ -1,0 +1,5 @@
+@host = http://localhost:3001
+@baseUrl = {{host}}/api
+
+### Health Check
+GET {{baseUrl}}/health/check

@@ -4,10 +4,16 @@ import { TYPES_AUTH } from '../../config/ioc.types';
 import { AuthService } from './auth.service';
 import { ok } from '../../utils/api-response';
 import { asyncHandler } from '../../utils/asyncHandler';
-import type { LoginDto, RefreshTokenDto } from './auth.validation';
+import type { LoginDto, RefreshTokenDto, RegisterDto } from './auth.validation';
 
 export class AuthController {
   constructor(private authService = container.get<AuthService>(TYPES_AUTH.AuthService)) {}
+
+  public register = asyncHandler(async (req: Request, res: Response) => {
+    const { username, email, password } = req.body as RegisterDto;
+    const result = await this.authService.register(username, email, password);
+    return ok(req, res, result);
+  });
 
   public login = asyncHandler(async (req: Request, res: Response) => {
     const { username, password } = req.body as LoginDto;

@@ -4,7 +4,7 @@ import { AuthController } from '../../modules/auth/auth.controller';
 import { AuthService } from '../../modules/auth/auth.service';
 import { RoleName } from '../../modules/auth/auth.types';
 import { validate } from '../../middleware/validate.middleware';
-import { loginSchema, refreshTokenSchema } from '../../modules/auth/auth.validation';
+import { loginSchema, refreshTokenSchema, registerSchema } from '../../modules/auth/auth.validation';
 
 jest.mock('../../config/ioc.config', () => ({
   __esModule: true,
@@ -66,6 +66,7 @@ describe('Auth Routes', () => {
     jest.clearAllMocks();
 
     mockAuthService = {
+      register: jest.fn(),
       login: jest.fn(),
       refreshToken: jest.fn(),
       getCurrentUser: jest.fn(),
@@ -82,9 +83,35 @@ describe('Auth Routes', () => {
 
     app = express();
     app.use(express.json());
+    app.post('/auth/register', validate({ body: registerSchema }), authController.register);
     app.post('/auth/login', validate({ body: loginSchema }), authController.login);
     app.post('/auth/refresh-token', validate({ body: refreshTokenSchema }), authController.refreshToken);
     app.get('/auth/me', authController.getCurrentUser);
+  });
+
+  describe('POST /auth/register', () => {
+    it('should return 200 and tokens on successful registration', async () => {
+      mockAuthService.register.mockResolvedValue(mockLoginResponse);
+
+      const response = await request(app).post('/auth/register').send({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+      expect(response.body.data).toEqual(mockLoginResponse);
+    });
+
+    it('should return 400 if email is missing', async () => {
+      const response = await request(app).post('/auth/register').send({
+        username: 'testuser',
+        password: 'password123',
+      });
+
+      expect(response.status).toBe(400);
+    });
   });
 
   describe('POST /auth/login', () => {

@@ -38,6 +38,8 @@ export interface LoginResponse {
   };
 }
 
+export type RegisterResponse = LoginResponse;
+
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;

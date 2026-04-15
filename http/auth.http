@@ -1,5 +1,15 @@
-### Health Check
-GET {{baseUrl}}/health/check
+@host = http://localhost:3001
+@baseUrl = {{host}}/api
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
 
 ### Login
 # @name login
@@ -17,9 +27,9 @@ POST {{baseUrl}}/auth/refresh-token
 Content-Type: application/json
 
 {
-  "refreshToken": "{{refreshToken}}"
+  "refreshToken": "{{login.response.body.$.data.tokens.refreshToken}}"
 }
 
 ### Get Current User (requires auth)
 GET {{baseUrl}}/auth/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.tokens.accessToken}}

@@ -2,11 +2,12 @@ import { injectable } from 'inversify';
 import container from '../../config/ioc.config';
 import { TYPES_AUTH, TYPES_INTEGRATIONS } from '../../config/ioc.types';
 import { AuthRepository } from './auth.repository';
-import { verifyPassword } from '../../utils/auth/password.util';
+import { hashPassword, verifyPassword } from '../../utils/auth/password.util';
 import { generateTokens, verifyRefreshToken, TokenPair } from '../../utils/auth/jwt.util';
-import { UnauthorizedError, ErrorCode } from '../../utils/errors';
+import { ConflictError, ErrorCode, InternalServerError, UnauthorizedError } from '../../utils/errors';
 import { EmailService } from '../../integrations/notification/email.service';
-import type { RoleName, LoginResponse, CurrentUserResponse, JwtUser } from './auth.types';
+import { RoleName } from './auth.types';
+import type { LoginResponse, CurrentUserResponse, JwtUser, RegisterResponse } from './auth.types';
 
 @injectable()
 export class AuthService {
@@ -35,6 +36,50 @@ export class AuthService {
       username: user.username,
       email: user.email ?? undefined,
       roles,
+    };
+  }
+
+  async register(username: string, email: string, password: string): Promise<RegisterResponse> {
+    const existingUser = await this.authRepository.findByUsername(username);
+
+    if (existingUser) {
+      throw new ConflictError('Username already exists', ErrorCode.RECORD_CONFLICT);
+    }
+
+    const existingEmail = await this.authRepository.findByEmail(email);
+
+    if (existingEmail) {
+      throw new ConflictError('Email already exists', ErrorCode.RECORD_CONFLICT);
+    }
+
+    const userRole = await this.authRepository.findRoleByName(RoleName.USER);
+
+    if (!userRole) {
+      throw new InternalServerError('Default user role not found', ErrorCode.INTERNAL_ERROR);
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const createdUser = await this.authRepository.createUser(username, email, hashedPassword, userRole.id);
+
+    const jwtUser: JwtUser = {
+      userId: createdUser.id,
+      username: createdUser.username,
+      email: createdUser.email ?? undefined,
+      roles: createdUser.userRoles.map((userRoleMapping) => userRoleMapping.role.name as RoleName),
+    };
+
+    const tokens = this.generateTokens(jwtUser);
+
+    await this.sendWelcomeEmail(email, username);
+
+    return {
+      user: {
+        id: createdUser.id,
+        username: createdUser.username,
+        email: createdUser.email,
+        roles: createdUser.userRoles.map((userRoleMapping) => userRoleMapping.role.name as RoleName),
+      },
+      tokens,
     };
   }
 

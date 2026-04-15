@@ -1,6 +1,6 @@
 import { AuthService } from '../../../../modules/auth/auth.service';
 import { AuthRepository } from '../../../../modules/auth/auth.repository';
-import { UnauthorizedError } from '../../../../utils/errors';
+import { ConflictError, InternalServerError, UnauthorizedError } from '../../../../utils/errors';
 import { EmailService } from '../../../../integrations/notification/email.service';
 import { RoleName } from '../../../../modules/auth/auth.types';
 
@@ -18,6 +18,7 @@ jest.mock('../../../../integrations/notification/email.service', () => ({
 }));
 
 jest.mock('../../../../utils/auth/password.util', () => ({
+  hashPassword: jest.fn(),
   verifyPassword: jest.fn(),
 }));
 
@@ -36,8 +37,17 @@ describe('AuthService', () => {
   let mockAuthRepository: jest.Mocked<AuthRepository>;
   let mockEmailService: jest.Mocked<EmailService>;
   let mockVerifyPassword: jest.MockedFunction<any>;
+  let mockHashPassword: jest.MockedFunction<any>;
   let mockGenerateTokens: jest.MockedFunction<any>;
   let mockVerifyRefreshToken: jest.MockedFunction<any>;
+
+  const mockRole = {
+    id: 'role-1',
+    name: RoleName.USER,
+    description: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   const mockUser: any = {
     id: 'user-123',
@@ -69,7 +79,10 @@ describe('AuthService', () => {
 
     mockAuthRepository = {
       findByUsername: jest.fn(),
+      findByEmail: jest.fn(),
       findByIdWithRoles: jest.fn(),
+      findRoleByName: jest.fn(),
+      createUser: jest.fn(),
     } as any;
 
     mockEmailService = {
@@ -77,6 +90,7 @@ describe('AuthService', () => {
     } as any;
 
     mockVerifyPassword = require('../../../../utils/auth/password.util').verifyPassword as jest.MockedFunction<any>;
+    mockHashPassword = require('../../../../utils/auth/password.util').hashPassword as jest.MockedFunction<any>;
     mockGenerateTokens = require('../../../../utils/auth/jwt.util').generateTokens as jest.MockedFunction<any>;
     mockVerifyRefreshToken = require('../../../../utils/auth/jwt.util').verifyRefreshToken as jest.MockedFunction<any>;
 
@@ -89,6 +103,50 @@ describe('AuthService', () => {
     });
 
     authService = new AuthService();
+  });
+
+  describe('register', () => {
+    it('should throw ConflictError if username already exists', async () => {
+      mockAuthRepository.findByUsername.mockResolvedValue(mockUser);
+
+      await expect(authService.register('testuser', 'test@example.com', 'password123')).rejects.toThrow(ConflictError);
+    });
+
+    it('should throw ConflictError if email already exists', async () => {
+      mockAuthRepository.findByUsername.mockResolvedValue(null);
+      mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
+
+      await expect(authService.register('newuser', 'test@example.com', 'password123')).rejects.toThrow(ConflictError);
+    });
+
+    it('should throw InternalServerError if default role is missing', async () => {
+      mockAuthRepository.findByUsername.mockResolvedValue(null);
+      mockAuthRepository.findByEmail.mockResolvedValue(null);
+      mockAuthRepository.findRoleByName.mockResolvedValue(null);
+
+      await expect(authService.register('newuser', 'new@example.com', 'password123')).rejects.toThrow(InternalServerError);
+    });
+
+    it('should create a user and return tokens on success', async () => {
+      mockAuthRepository.findByUsername.mockResolvedValue(null);
+      mockAuthRepository.findByEmail.mockResolvedValue(null);
+      mockAuthRepository.findRoleByName.mockResolvedValue(mockRole as any);
+      mockHashPassword.mockResolvedValue('hashed_password');
+      mockAuthRepository.createUser.mockResolvedValue(mockUser);
+      mockGenerateTokens.mockReturnValue({
+        accessToken: 'access_token',
+        refreshToken: 'refresh_token',
+        expiresIn: 3600,
+        refreshExpiresIn: 604800,
+      });
+
+      const result = await authService.register('testuser', 'test@example.com', 'password123');
+
+      expect(mockAuthRepository.createUser).toHaveBeenCalledWith('testuser', 'test@example.com', 'hashed_password', 'role-1');
+      expect(result.user.username).toBe('testuser');
+      expect(result.tokens.accessToken).toBe('access_token');
+      expect(mockEmailService.sendEmail).toHaveBeenCalled();
+    });
   });
 
   describe('validateUser', () => {

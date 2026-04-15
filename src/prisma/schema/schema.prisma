@@ -1,9 +1,7 @@
+// Keep only the generator in this file when using multiple schema files in the same directory.
+// Individual model definitions are kept in separate files in this directory (auth.prisma, country.prisma).
 generator client {
   provider        = "prisma-client"
   output          = "../../prisma/generated/prisma"
   previewFeatures = ["strictUndefinedChecks"]
-}
-
-datasource db {
-  provider = "postgresql"
 }

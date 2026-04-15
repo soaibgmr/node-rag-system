@@ -1,0 +1,4 @@
+datasource db {
+  provider = "postgresql"
+  // The URL is provided via prisma.config.ts / environment (DATABASE_URL)
+}

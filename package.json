@@ -1,7 +1,7 @@
 {
-  "name": "node-express-prisma-starter-rest-api",
+  "name": "node-rag-system",
   "version": "1.0.0",
-  "description": "Production-ready Node.js REST API starter with Express, TypeScript, Prisma, JWT auth, and Docker support",
+  "description": "Scalable SaaS-ready RAG (Retrieval-Augmented Generation) platform built with Node.js, Express, TypeScript, LangChain, and vector databases, featuring secure APIs, JWT authentication, and production-grade architecture for AI-powered knowledge retrieval and chat applications.",
   "main": "server.js",
   "scripts": {
     "prepare": "husky install",
