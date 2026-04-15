@@ -72,13 +72,24 @@ export const createSourceSchema = z
     }
   });
 
-export const publicChatSchema = z.object({
-  publicKey: z.string().min(8).max(255),
-  message: z.string().min(1).max(8000),
-  conversationId: z.uuid('Invalid conversation id').optional(),
-  origin: z.string().optional(),
-  visitorId: z.string().max(255).optional(),
-});
+export const publicChatSchema = z
+  .object({
+    publicKey: z.string().min(8).max(255).optional(),
+    chatbotId: z.uuid('Invalid chatbot id').optional(),
+    message: z.string().min(1).max(8000),
+    conversationId: z.uuid('Invalid conversation id').optional(),
+    origin: z.string().optional(),
+    visitorId: z.string().max(255).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.publicKey && !value.chatbotId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['publicKey'],
+        message: 'Either publicKey or chatbotId is required',
+      });
+    }
+  });
 
 export type CreateChatbotInput = z.infer<typeof createChatbotSchema>;
 export type UpdateChatbotInput = z.infer<typeof updateChatbotSchema>;

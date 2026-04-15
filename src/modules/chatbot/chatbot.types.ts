@@ -41,7 +41,8 @@ export interface TriggerIngestionDto {
 }
 
 export interface PublicChatRequestDto {
-  publicKey: string;
+  publicKey?: string;
+  chatbotId?: string;
   message: string;
   conversationId?: string;
   origin?: string;

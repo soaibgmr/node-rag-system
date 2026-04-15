@@ -1,6 +1,7 @@
 @host = http://localhost:3001
 @baseUrl = {{host}}/api
 @accessToken = REPLACE_WITH_ACCESS_TOKEN
+@chatbotId = REPLACE_WITH_CHATBOT_UUID
 @publicKey = REPLACE_WITH_PUBLIC_KEY
 
 ### Get first chatbot public key (optional)
@@ -12,6 +13,10 @@ Authorization: Bearer {{accessToken}}
 
 ### Public chatbot bootstrap
 GET {{baseUrl}}/public/chatbots/{{publicKey}}/bootstrap
+Origin: https://example.com
+
+### Public chatbot bootstrap (by internal chatbot id)
+GET {{baseUrl}}/public/chatbots/id/{{chatbotId}}/bootstrap
 Origin: https://example.com
 
 ### Public chat completion
@@ -38,4 +43,15 @@ Content-Type: application/json
   "conversationId": "{{conversationId}}",
   "visitorId": "visitor-123",
   "message": "Do you support weekend calls?"
+}
+
+### Public chat completion (by internal chatbot id)
+POST {{baseUrl}}/public/chat
+Content-Type: application/json
+
+{
+  "chatbotId": "{{chatbotId}}",
+  "origin": "https://example.com",
+  "visitorId": "visitor-123",
+  "message": "Hello from widget using chatbot id"
 }

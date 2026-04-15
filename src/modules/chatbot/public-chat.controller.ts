@@ -10,9 +10,16 @@ export class PublicChatController {
   constructor(private chatbotService = container.get<ChatbotService>(TYPES_CHATBOT.ChatbotService)) {}
 
   public bootstrap = asyncHandler(async (req: Request, res: Response) => {
-    const publicKey = String(req.params.publicKey);
+    const publicKey = req.params.publicKey as string | undefined;
+    const chatbotId = req.params.chatbotId as string | undefined;
     const origin = (req.headers.origin as string | undefined) ?? (req.query.origin as string | undefined);
-    const data = await this.chatbotService.getPublicBootstrap(publicKey, origin);
+    const data = await this.chatbotService.getPublicBootstrap(
+      {
+        publicKey,
+        chatbotId,
+      },
+      origin
+    );
     return ok(req, res, data);
   });
 

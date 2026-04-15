@@ -89,6 +89,36 @@ export class ChatbotRepository {
     });
   }
 
+  findChatbotByPublicIdentifier(input: { publicKey?: string; chatbotId?: string }) {
+    const orFilters: Array<Prisma.ChatbotWhereInput> = [];
+
+    if (input.publicKey) {
+      orFilters.push({ publicKey: input.publicKey });
+    }
+
+    if (input.chatbotId) {
+      orFilters.push({ id: input.chatbotId });
+    }
+
+    if (orFilters.length === 0) {
+      return null;
+    }
+
+    return this.prisma.chatbot.findFirst({
+      where: {
+        isArchived: false,
+        OR: orFilters,
+      },
+      include: {
+        domains: {
+          where: {
+            isActive: true,
+          },
+        },
+      },
+    });
+  }
+
   updateChatbot(chatbotId: string, ownerId: string, data: Record<string, unknown>) {
     return this.prisma.chatbot.updateMany({
       where: {

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Widget Test</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --primary: #114fb8;
+        --border: #e5e7eb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at top left, #dbeafe 0%, var(--bg) 45%);
+        color: var(--text);
+      }
+
+      .wrap {
+        width: min(900px, 100% - 2rem);
+        margin: 2rem auto;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 16px 40px rgba(2, 6, 23, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      @media (min-width: 740px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 0.25rem;
+        display: block;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.65rem 0.75rem;
+        font-size: 0.92rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 10px;
+        padding: 0.65rem 0.95rem;
+        font-size: 0.9rem;
+        color: white;
+        background: var(--primary);
+        cursor: pointer;
+      }
+
+      button.secondary {
+        color: var(--text);
+        background: #e2e8f0;
+      }
+
+      .log {
+        margin-top: 1rem;
+        font-size: 0.83rem;
+        color: var(--muted);
+      }
+
+      .badge {
+        display: inline-block;
+        margin-top: 0.5rem;
+        font-size: 0.78rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 0.3rem 0.45rem;
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Chatbot Widget Embed Test</h1>
+        <p>This page loads public/chatbot.js using the same dynamic script pattern as production.</p>
+        <span class="badge">Tip: set query params to prefill fields</span>
+        <div class="grid">
+          <div>
+            <label for="chatbotId">Chatbot UUID (required)</label>
+            <input id="chatbotId" placeholder="00000000-0000-0000-0000-000000000000" />
+          </div>
+          <div>
+            <label for="apiBase">API Base URL</label>
+            <input id="apiBase" placeholder="http://localhost:3001/api" />
+          </div>
+          <div>
+            <label for="title">Widget title</label>
+            <input id="title" placeholder="HealthCare DMS" />
+          </div>
+          <div>
+            <label for="subtitle">Widget subtitle</label>
+            <input id="subtitle" placeholder="AI Assistant" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="loadWidgetBtn" type="button">Load Widget</button>
+          <button id="reloadBtn" type="button" class="secondary">Reload Page</button>
+        </div>
+
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <script src="/chatbot-test.js"></script>
+  </body>
+</html>

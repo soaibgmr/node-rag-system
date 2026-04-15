@@ -20,7 +20,12 @@ const app = express();
 
 app.use(helmetMiddleware);
 
-const staticDirCandidates = [path.join(process.cwd(), 'public'), path.join(__dirname, 'public')];
+const staticDirCandidates = [
+  path.join(process.cwd(), 'public'),
+  path.join(__dirname, 'public'),
+  path.join(__dirname, '..', 'public'),
+  path.join(__dirname, '..', '..', 'public'),
+];
 const staticDir = staticDirCandidates.find((dir) => fs.existsSync(dir));
 
 if (staticDir) {

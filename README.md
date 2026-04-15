@@ -157,6 +157,44 @@ src/
 
 Swagger docs available at: `http://localhost:3001/api/docs`
 
+## Embeddable Chatbot Widget
+
+Build and publish the widget bundle:
+
+```bash
+cd ../chatbot-widget
+npm install
+npm run build:widget
+```
+
+This generates a single file at `public/chatbot.js` in this API project.
+
+Embed snippet:
+
+```html
+<script>
+  (function () {
+    const randomId = Date.now();
+    const script = document.createElement('script');
+    script.src = `https://your-domain.com/chatbot.js?id=${randomId}`;
+    script.setAttribute('data-chatbot-id', 'REPLACE_WITH_CHATBOT_UUID');
+    script.setAttribute('data-api-base', 'https://your-domain.com/api');
+    script.async = true;
+    document.head.appendChild(script);
+  })();
+</script>
+```
+
+Supported `data-*` attributes:
+
+- `data-chatbot-id` (required): Internal chatbot UUID
+- `data-api-base` (optional): API base URL, default is `<script-origin>/api`
+- `data-title` (optional): Header title text
+- `data-subtitle` (optional): Header subtitle text
+- `data-welcome` (optional): Initial assistant message
+- `data-primary-color` (optional): Primary accent color, default `#114fb8`
+- `data-position` (optional): `right` or `left`, default `right`
+
 ## Authentication
 
 Include tokens in Authorization header:

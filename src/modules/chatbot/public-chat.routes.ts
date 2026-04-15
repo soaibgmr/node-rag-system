@@ -10,6 +10,7 @@ const router = Router();
 const publicChatController = container.get<PublicChatController>(TYPES_CHATBOT.PublicChatController);
 
 router.get('/chatbots/:publicKey/bootstrap', publicChatRateLimiter, publicChatController.bootstrap);
+router.get('/chatbots/id/:chatbotId/bootstrap', publicChatRateLimiter, publicChatController.bootstrap);
 router.post('/chat', publicChatRateLimiter, validate({ body: publicChatSchema }), publicChatController.chat);
 
 export default router;

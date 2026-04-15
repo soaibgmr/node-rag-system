@@ -198,12 +198,8 @@ export class ChatbotService {
     return this.chatbotRepository.listMessages(conversation.id);
   }
 
-  async getPublicBootstrap(publicKey: string, origin?: string) {
-    const chatbot = await this.chatbotRepository.findChatbotByPublicKey(publicKey);
-
-    if (!chatbot) {
-      throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
-    }
+  async getPublicBootstrap(identifier: { publicKey?: string; chatbotId?: string }, origin?: string) {
+    const chatbot = await this.resolvePublicChatbot(identifier);
 
     this.validateAllowedOrigin(
       chatbot.domains.map((d) => d.domain),
@@ -220,11 +216,10 @@ export class ChatbotService {
   }
 
   async chatPublic(dto: PublicChatRequestDto): Promise<PublicChatResponseDto> {
-    const chatbot = await this.chatbotRepository.findChatbotByPublicKey(dto.publicKey);
-
-    if (!chatbot) {
-      throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
-    }
+    const chatbot = await this.resolvePublicChatbot({
+      publicKey: dto.publicKey,
+      chatbotId: dto.chatbotId,
+    });
 
     this.validateAllowedOrigin(
       chatbot.domains.map((d) => d.domain),
@@ -437,6 +432,16 @@ export class ChatbotService {
     if (!match) {
       throw new ForbiddenError('Origin is not allowed for this chatbot', ErrorCode.FORBIDDEN);
     }
+  }
+
+  private async resolvePublicChatbot(identifier: { publicKey?: string; chatbotId?: string }) {
+    const chatbot = await this.chatbotRepository.findChatbotByPublicIdentifier(identifier);
+
+    if (!chatbot) {
+      throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    return chatbot;
   }
 
   private toContextItems(matches: VectorMatch[], limit: number): Array<RetrievedContextItem & { chunkId: string; sourceId: string }> {
