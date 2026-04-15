@@ -102,8 +102,6 @@ Server runs on `http://localhost:3001`
 - Hot reload with nodemon
 - TypeScript strict mode
 - Prettier code formatting
-- Commit message linting
-- Git hooks with Husky
 
 ### Production Ready
 
