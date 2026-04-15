@@ -243,7 +243,11 @@ export class ChatbotRepository {
     });
   }
 
-  replaceChunks(data: { chatbotId: string; sourceId: string; chunks: Array<{ chunkIndex: number; content: string; vectorId: string; tokenCount?: number }> }) {
+  replaceChunks(data: {
+    chatbotId: string;
+    sourceId: string;
+    chunks: Array<{ chunkIndex: number; content: string; vectorId: string; tokenCount?: number }>;
+  }) {
     return this.prisma.$transaction(async (tx) => {
       await tx.documentChunk.deleteMany({
         where: {

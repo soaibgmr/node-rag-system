@@ -24,17 +24,17 @@ import { ChatbotService } from '../modules/chatbot/chatbot.service';
 import { ChatbotController } from '../modules/chatbot/chatbot.controller';
 import { PublicChatController } from '../modules/chatbot/public-chat.controller';
 import {
-	BasicDocumentExtractionService,
-	DeterministicEmbeddingService,
-	DocumentExtractionService,
-	EmbeddingService,
-	GroqLlmService,
-	LlmService,
-	OllamaEmbeddingService,
-	PineconeVectorStoreService,
-	SimpleUrlIngestionService,
-	UrlIngestionService,
-	VectorStoreService,
+  BasicDocumentExtractionService,
+  DeterministicEmbeddingService,
+  DocumentExtractionService,
+  EmbeddingService,
+  GroqLlmService,
+  LlmService,
+  OllamaEmbeddingService,
+  PineconeVectorStoreService,
+  SimpleUrlIngestionService,
+  UrlIngestionService,
+  VectorStoreService,
 } from '../integrations/rag';
 import appConfig from './app.config';
 
@@ -62,11 +62,11 @@ container.bind<ChatbotController>(TYPES_CHATBOT.ChatbotController).to(ChatbotCon
 container.bind<PublicChatController>(TYPES_CHATBOT.PublicChatController).to(PublicChatController);
 
 container.bind<EmbeddingService>(TYPES_RAG_INTEGRATIONS.EmbeddingService).toDynamicValue(() => {
-	if (appConfig.rag.ollama.baseUrl && appConfig.rag.ollama.embeddingModel) {
-		return new OllamaEmbeddingService();
-	}
+  if (appConfig.rag.ollama.baseUrl && appConfig.rag.ollama.embeddingModel) {
+    return new OllamaEmbeddingService();
+  }
 
-	return new DeterministicEmbeddingService();
+  return new DeterministicEmbeddingService();
 });
 container.bind<VectorStoreService>(TYPES_RAG_INTEGRATIONS.VectorStoreService).to(PineconeVectorStoreService);
 container.bind<LlmService>(TYPES_RAG_INTEGRATIONS.LlmService).to(GroqLlmService);

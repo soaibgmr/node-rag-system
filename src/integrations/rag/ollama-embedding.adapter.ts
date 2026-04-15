@@ -28,7 +28,7 @@ export class OllamaEmbeddingService extends EmbeddingService {
           values,
           metadata: input.metadata,
         };
-      }),
+      })
     );
   }
 

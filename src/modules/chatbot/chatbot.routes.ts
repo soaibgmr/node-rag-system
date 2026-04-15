@@ -30,10 +30,20 @@ router.delete('/:chatbotId', validate({ params: chatbotIdParamsSchema }), chatbo
 router.post('/:chatbotId/domains', validate({ params: chatbotIdParamsSchema, body: addDomainSchema }), chatbotController.addDomain);
 router.delete('/:chatbotId/domains/:domainId', validate({ params: domainIdParamsSchema }), chatbotController.removeDomain);
 
-router.post('/:chatbotId/sources', ingestionRateLimiter, validate({ params: chatbotIdParamsSchema, body: createSourceSchema }), chatbotController.createSource);
+router.post(
+  '/:chatbotId/sources',
+  ingestionRateLimiter,
+  validate({ params: chatbotIdParamsSchema, body: createSourceSchema }),
+  chatbotController.createSource
+);
 router.get('/:chatbotId/sources', validate({ params: chatbotIdParamsSchema }), chatbotController.listSources);
 router.delete('/:chatbotId/sources/:sourceId', validate({ params: sourceIdParamsSchema }), chatbotController.removeSource);
-router.post('/:chatbotId/sources/:sourceId/ingest', ingestionRateLimiter, validate({ params: sourceIdParamsSchema }), chatbotController.startIngestion);
+router.post(
+  '/:chatbotId/sources/:sourceId/ingest',
+  ingestionRateLimiter,
+  validate({ params: sourceIdParamsSchema }),
+  chatbotController.startIngestion
+);
 router.get('/:chatbotId/jobs', validate({ params: chatbotIdParamsSchema }), chatbotController.listJobs);
 
 router.get('/:chatbotId/conversations', validate({ params: chatbotIdParamsSchema }), chatbotController.listConversations);

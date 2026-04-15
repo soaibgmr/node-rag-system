@@ -20,9 +20,7 @@ export const buildSystemPrompt = (): string => {
 };
 
 export const buildUserPrompt = (question: string, contextItems: RetrievedContextItem[], history: ConversationTurn[] = []): string => {
-  const conversationHistory = history
-    .map((turn) => `${turn.role}: ${turn.content}`)
-    .join('\n');
+  const conversationHistory = history.map((turn) => `${turn.role}: ${turn.content}`).join('\n');
 
   const context = contextItems
     .map((item, index) => {

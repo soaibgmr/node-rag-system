@@ -238,35 +238,67 @@ async function runFullFlow() {
 
 function wireEvents() {
   el('loginBtn').addEventListener('click', async () => {
-    try { await login(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await login();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('createBotBtn').addEventListener('click', async () => {
-    try { await createChatbot(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await createChatbot();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('addSourceBtn').addEventListener('click', async () => {
-    try { await addSource(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await addSource();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('startIngestBtn').addEventListener('click', async () => {
-    try { await startIngestion(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await startIngestion();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('checkJobBtn').addEventListener('click', async () => {
-    try { await checkLatestJob(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await checkLatestJob();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('bootstrapBtn').addEventListener('click', async () => {
-    try { await bootstrap(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await bootstrap();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('chatBtn').addEventListener('click', async () => {
-    try { await chat(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await chat();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('runAllBtn').addEventListener('click', async () => {
-    try { await runFullFlow(); } catch (e) { writeLog(e.message, 'err'); }
+    try {
+      await runFullFlow();
+    } catch (e) {
+      writeLog(e.message, 'err');
+    }
   });
 
   el('clearLogBtn').addEventListener('click', () => {

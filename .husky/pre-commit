@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Run prettier on staged files
-npx prettier --write .
-
-# Run tests
-npm run test

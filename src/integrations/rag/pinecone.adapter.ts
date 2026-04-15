@@ -44,7 +44,7 @@ export class PineconeVectorStoreService extends VectorStoreService {
             _id: record.id,
             [this.textField]: record.text,
             ...(record.metadata ?? {}),
-          }),
+          })
         )
         .join('\n');
 

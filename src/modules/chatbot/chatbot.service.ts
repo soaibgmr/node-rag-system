@@ -205,7 +205,10 @@ export class ChatbotService {
       throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
     }
 
-    this.validateAllowedOrigin(chatbot.domains.map((d) => d.domain), origin);
+    this.validateAllowedOrigin(
+      chatbot.domains.map((d) => d.domain),
+      origin
+    );
 
     return {
       chatbotId: chatbot.id,
@@ -223,11 +226,12 @@ export class ChatbotService {
       throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
     }
 
-    this.validateAllowedOrigin(chatbot.domains.map((d) => d.domain), dto.origin);
+    this.validateAllowedOrigin(
+      chatbot.domains.map((d) => d.domain),
+      dto.origin
+    );
 
-    let conversation = dto.conversationId
-      ? await this.chatbotRepository.findConversationById(chatbot.id, dto.conversationId)
-      : null;
+    let conversation = dto.conversationId ? await this.chatbotRepository.findConversationById(chatbot.id, dto.conversationId) : null;
 
     if (!conversation) {
       conversation = await this.chatbotRepository.createConversation(chatbot.id, undefined, dto.visitorId);
@@ -246,12 +250,12 @@ export class ChatbotService {
     });
 
     const recentMessages = await this.chatbotRepository.listRecentMessages(conversation.id, 8);
-    const history = recentMessages
-      .reverse()
-      .map((message): ConversationTurn => ({
+    const history = recentMessages.reverse().map(
+      (message): ConversationTurn => ({
         role: message.role,
         content: message.content,
-      }));
+      })
+    );
 
     const contextItems = this.toContextItems(matches, chatbot.maxContextItems);
     const userPrompt = buildUserPrompt(dto.message, contextItems, history);
