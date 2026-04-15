@@ -1,0 +1,158 @@
+enum SourceType {
+  TEXT
+  DOCUMENT
+  URL
+}
+
+enum IngestionStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model Chatbot {
+  id              String   @id @default(uuid()) @map("id") @db.Uuid
+  ownerId         String   @map("owner_id") @db.Uuid
+  name            String   @map("name") @db.VarChar(255)
+  description     String?  @map("description") @db.VarChar(1000)
+  publicKey       String   @unique @map("public_key") @db.VarChar(255)
+  pineconeNs      String   @unique @map("pinecone_ns") @db.VarChar(255)
+  model           String   @map("model") @db.VarChar(255)
+  temperature     Float    @default(0.2) @map("temperature")
+  topK            Int      @default(4) @map("top_k")
+  chunkSize       Int      @default(1000) @map("chunk_size")
+  chunkOverlap    Int      @default(150) @map("chunk_overlap")
+  maxContextItems Int      @default(6) @map("max_context_items")
+  isArchived      Boolean  @default(false) @map("is_archived")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  owner         User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  domains       ChatbotDomain[]
+  sources       KnowledgeSource[]
+  ingestionJobs IngestionJob[]
+  conversations Conversation[]
+
+  @@map("chatbots")
+  @@index([ownerId], name: "idx_chatbots_owner_id")
+}
+
+model ChatbotDomain {
+  id        String   @id @default(uuid()) @map("id") @db.Uuid
+  chatbotId String   @map("chatbot_id") @db.Uuid
+  domain    String   @map("domain") @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+
+  @@map("chatbot_domains")
+  @@unique([chatbotId, domain], name: "uq_chatbot_domain")
+  @@index([chatbotId], name: "idx_chatbot_domains_chatbot_id")
+}
+
+model KnowledgeSource {
+  id         String     @id @default(uuid()) @map("id") @db.Uuid
+  chatbotId  String     @map("chatbot_id") @db.Uuid
+  type       SourceType @map("type")
+  title      String     @map("title") @db.VarChar(255)
+  textBody   String?    @map("text_body") @db.Text
+  url        String?    @map("url") @db.VarChar(2000)
+  fileName   String?    @map("file_name") @db.VarChar(255)
+  mimeType   String?    @map("mime_type") @db.VarChar(255)
+  sourceHash String?    @map("source_hash") @db.VarChar(255)
+  isActive   Boolean    @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  chatbot       Chatbot         @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  ingestionJobs IngestionJob[]
+  chunks        DocumentChunk[]
+
+  @@map("knowledge_sources")
+  @@index([chatbotId], name: "idx_knowledge_sources_chatbot_id")
+}
+
+model IngestionJob {
+  id            String          @id @default(uuid()) @map("id") @db.Uuid
+  chatbotId     String          @map("chatbot_id") @db.Uuid
+  sourceId      String          @map("source_id") @db.Uuid
+  status        IngestionStatus @default(QUEUED) @map("status")
+  startedAt     DateTime?       @map("started_at") @db.Timestamptz(3)
+  completedAt   DateTime?       @map("completed_at") @db.Timestamptz(3)
+  failureReason String?         @map("failure_reason") @db.Text
+  chunksCount   Int             @default(0) @map("chunks_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  chatbot Chatbot         @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  source  KnowledgeSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("ingestion_jobs")
+  @@index([chatbotId, status], name: "idx_ingestion_jobs_chatbot_status")
+  @@index([sourceId], name: "idx_ingestion_jobs_source_id")
+}
+
+model DocumentChunk {
+  id          String  @id @default(uuid()) @map("id") @db.Uuid
+  chatbotId   String  @map("chatbot_id") @db.Uuid
+  sourceId    String  @map("source_id") @db.Uuid
+  chunkIndex  Int     @map("chunk_index")
+  content     String  @map("content") @db.Text
+  tokenCount  Int?    @map("token_count")
+  vectorId    String  @map("vector_id") @db.VarChar(255)
+  metadataRef String? @map("metadata_ref") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  source KnowledgeSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("document_chunks")
+  @@unique([sourceId, chunkIndex], name: "uq_source_chunk_index")
+  @@index([chatbotId], name: "idx_document_chunks_chatbot_id")
+}
+
+model Conversation {
+  id         String   @id @default(uuid()) @map("id") @db.Uuid
+  chatbotId  String   @map("chatbot_id") @db.Uuid
+  externalId String?  @map("external_id") @db.VarChar(255)
+  title      String?  @map("title") @db.VarChar(255)
+  visitorId  String?  @map("visitor_id") @db.VarChar(255)
+  metadata   Json?    @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  chatbot  Chatbot    @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("conversations")
+  @@index([chatbotId], name: "idx_conversations_chatbot_id")
+}
+
+model ChatMessage {
+  id             String      @id @default(uuid()) @map("id") @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  role           MessageRole @map("role")
+  content        String      @map("content") @db.Text
+  citations      Json?       @map("citations")
+  metadata       Json?       @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+  @@index([conversationId, createdAt], name: "idx_chat_messages_conversation_created")
+}

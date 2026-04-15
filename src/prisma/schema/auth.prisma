@@ -9,6 +9,7 @@ model User {
     updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
     userRoles UserRoleMapping[]
+    chatbots  Chatbot[]
 
     @@map("users")
 }

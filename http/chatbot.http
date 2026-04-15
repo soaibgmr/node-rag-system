@@ -1,0 +1,79 @@
+@host = http://localhost:3001
+@baseUrl = {{host}}/api
+@accessToken = REPLACE_WITH_ACCESS_TOKEN
+
+### Login to capture access token (optional)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+@accessToken = {{login.response.body.$.data.tokens.accessToken}}
+
+### Create chatbot (requires JWT)
+# @name createChatbot
+POST {{baseUrl}}/chatbots
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Support Bot",
+  "description": "Answers product FAQs",
+  "topK": 4,
+  "chunkSize": 1000,
+  "chunkOverlap": 150
+}
+
+@chatbotId = {{createChatbot.response.body.$.data.id}}
+@publicKey = {{createChatbot.response.body.$.data.publicKey}}
+
+### List chatbots
+GET {{baseUrl}}/chatbots
+Authorization: Bearer {{accessToken}}
+
+### Add allowed domain
+POST {{baseUrl}}/chatbots/{{chatbotId}}/domains
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "domain": "example.com"
+}
+
+### Create text source
+# @name createTextSource
+POST {{baseUrl}}/chatbots/{{chatbotId}}/sources
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "TEXT",
+  "title": "FAQ v1",
+  "textBody": "Our support hours are Monday to Friday, 9am to 6pm."
+}
+
+@sourceId = {{createTextSource.response.body.$.data.id}}
+
+### List sources
+GET {{baseUrl}}/chatbots/{{chatbotId}}/sources
+Authorization: Bearer {{accessToken}}
+
+### Start ingestion
+POST {{baseUrl}}/chatbots/{{chatbotId}}/sources/{{sourceId}}/ingest
+Authorization: Bearer {{accessToken}}
+
+### Delete source (cleanup vectors + soft delete source)
+DELETE {{baseUrl}}/chatbots/{{chatbotId}}/sources/{{sourceId}}
+Authorization: Bearer {{accessToken}}
+
+### List ingestion jobs
+GET {{baseUrl}}/chatbots/{{chatbotId}}/jobs
+Authorization: Bearer {{accessToken}}
+
+### List conversations
+GET {{baseUrl}}/chatbots/{{chatbotId}}/conversations
+Authorization: Bearer {{accessToken}}

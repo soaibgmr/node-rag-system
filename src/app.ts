@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import * as bodyParser from 'body-parser';
 import * as path from 'path';
+import * as fs from 'fs';
 import routes from './routes/index.routes';
 import docsRouter from './routes/docs.routes';
 import { errorMiddleware } from './middleware/error.middleware';
@@ -19,7 +20,12 @@ const app = express();
 
 app.use(helmetMiddleware);
 
-app.use(express.static(path.join(__dirname, 'public')));
+const staticDirCandidates = [path.join(process.cwd(), 'public'), path.join(__dirname, 'public')];
+const staticDir = staticDirCandidates.find((dir) => fs.existsSync(dir));
+
+if (staticDir) {
+  app.use(express.static(staticDir));
+}
 
 app.use(bodyParser.json());
 

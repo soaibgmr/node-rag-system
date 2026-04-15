@@ -1,0 +1,61 @@
+export interface CreateChatbotDto {
+  name: string;
+  description?: string;
+  model?: string;
+  temperature?: number;
+  topK?: number;
+  chunkSize?: number;
+  chunkOverlap?: number;
+  maxContextItems?: number;
+}
+
+export interface UpdateChatbotDto {
+  name?: string;
+  description?: string;
+  model?: string;
+  temperature?: number;
+  topK?: number;
+  chunkSize?: number;
+  chunkOverlap?: number;
+  maxContextItems?: number;
+}
+
+export interface AddChatbotDomainDto {
+  domain: string;
+}
+
+export type SourceTypeDto = 'TEXT' | 'DOCUMENT' | 'URL';
+
+export interface CreateKnowledgeSourceDto {
+  type: SourceTypeDto;
+  title: string;
+  textBody?: string;
+  url?: string;
+  mimeType?: string;
+  fileName?: string;
+  base64Content?: string;
+}
+
+export interface TriggerIngestionDto {
+  sourceId: string;
+}
+
+export interface PublicChatRequestDto {
+  publicKey: string;
+  message: string;
+  conversationId?: string;
+  origin?: string;
+  visitorId?: string;
+}
+
+export interface PublicChatResponseDto {
+  chatbotId: string;
+  conversationId: string;
+  answer: string;
+  sources: Array<{
+    chunkId: string;
+    sourceId: string;
+    sourceTitle: string;
+    score: number;
+  }>;
+}

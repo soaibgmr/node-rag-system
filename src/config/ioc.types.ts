@@ -23,3 +23,18 @@ export const TYPES_INTEGRATIONS = {
   EmailService: Symbol.for('EmailService'),
   PaymentService: Symbol.for('PaymentService'),
 };
+
+export const TYPES_CHATBOT = {
+  ChatbotRepository: Symbol.for('ChatbotRepository'),
+  ChatbotService: Symbol.for('ChatbotService'),
+  ChatbotController: Symbol.for('ChatbotController'),
+  PublicChatController: Symbol.for('PublicChatController'),
+};
+
+export const TYPES_RAG_INTEGRATIONS = {
+  EmbeddingService: Symbol.for('EmbeddingService'),
+  VectorStoreService: Symbol.for('VectorStoreService'),
+  LlmService: Symbol.for('LlmService'),
+  UrlIngestionService: Symbol.for('UrlIngestionService'),
+  DocumentExtractionService: Symbol.for('DocumentExtractionService'),
+};

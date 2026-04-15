@@ -1,0 +1,41 @@
+@host = http://localhost:3001
+@baseUrl = {{host}}/api
+@accessToken = REPLACE_WITH_ACCESS_TOKEN
+@publicKey = REPLACE_WITH_PUBLIC_KEY
+
+### Get first chatbot public key (optional)
+# @name listChatbots
+GET {{baseUrl}}/chatbots
+Authorization: Bearer {{accessToken}}
+
+@publicKey = {{listChatbots.response.body.$.data[0].publicKey}}
+
+### Public chatbot bootstrap
+GET {{baseUrl}}/public/chatbots/{{publicKey}}/bootstrap
+Origin: https://example.com
+
+### Public chat completion
+# @name publicChat
+POST {{baseUrl}}/public/chat
+Content-Type: application/json
+
+{
+  "publicKey": "{{publicKey}}",
+  "origin": "https://example.com",
+  "visitorId": "visitor-123",
+  "message": "What are your support hours?"
+}
+
+@conversationId = {{publicChat.response.body.$.data.conversationId}}
+
+### Continue conversation
+POST {{baseUrl}}/public/chat
+Content-Type: application/json
+
+{
+  "publicKey": "{{publicKey}}",
+  "origin": "https://example.com",
+  "conversationId": "{{conversationId}}",
+  "visitorId": "visitor-123",
+  "message": "Do you support weekend calls?"
+}

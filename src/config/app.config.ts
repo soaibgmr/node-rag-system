@@ -62,6 +62,37 @@ const appConfig = {
     secretKey: env.STRIPE_SECRET_KEY,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET,
   },
+  rag: {
+    pinecone: {
+      apiKey: env.PINECONE_API_KEY,
+      indexHost: env.PINECONE_INDEX_HOST,
+      apiVersion: env.PINECONE_API_VERSION,
+      namespacePrefix: env.PINECONE_NAMESPACE_PREFIX,
+      textField: env.PINECONE_TEXT_FIELD,
+    },
+    ollama: {
+      baseUrl: env.OLLAMA_BASE_URL,
+      embeddingModel: env.OLLAMA_EMBEDDING_MODEL,
+    },
+    groq: {
+      apiKey: env.GROQ_API_KEY,
+      baseUrl: env.GROQ_BASE_URL,
+      model: env.GROQ_MODEL,
+    },
+    defaults: {
+      topK: parseInt(env.RAG_TOP_K, 10),
+      temperature: parseFloat(env.RAG_TEMPERATURE),
+      chunkSize: parseInt(env.RAG_CHUNK_SIZE, 10),
+      chunkOverlap: parseInt(env.RAG_CHUNK_OVERLAP, 10),
+      maxContextItems: parseInt(env.RAG_MAX_CONTEXT_ITEMS, 10),
+      maxCompletionTokens: parseInt(env.RAG_MAX_COMPLETION_TOKENS, 10),
+    },
+    embeddingDimension: parseInt(env.RAG_EMBEDDING_DIMENSION, 10),
+    rateLimits: {
+      publicChatPer15m: parseInt(env.PUBLIC_CHAT_RATE_LIMIT, 10),
+      ingestionPer15m: parseInt(env.INGESTION_RATE_LIMIT, 10),
+    },
+  },
 };
 
 export default appConfig;
