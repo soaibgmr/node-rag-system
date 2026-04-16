@@ -415,4 +415,74 @@ export class ChatbotRepository {
       data: payload,
     });
   }
+
+  async getChatbotStats(input: { ownerId: string; isAdmin: boolean }) {
+    const chatbotWhere: Prisma.ChatbotWhereInput = input.isAdmin
+      ? { isArchived: false }
+      : { ownerId: input.ownerId, isArchived: false };
+
+    const [totalChatbots, activeChatbots, totalSessions] = await Promise.all([
+      this.prisma.chatbot.count({ where: chatbotWhere }),
+      this.prisma.chatbot.count({ where: { ...chatbotWhere, status: 'PUBLISHED' } }),
+      this.prisma.conversation.count({
+        where: {
+          chatbot: chatbotWhere,
+        },
+      }),
+    ]);
+
+    // Compute avg response time by pairing USER → ASSISTANT messages per conversation
+    const conversations = await this.prisma.conversation.findMany({
+      where: { chatbot: chatbotWhere },
+      select: { id: true },
+    });
+
+    let avgResponseSeconds: number | null = null;
+
+    if (conversations.length > 0) {
+      const conversationIds = conversations.map((c) => c.id);
+
+      const messages = await this.prisma.chatMessage.findMany({
+        where: {
+          conversationId: { in: conversationIds },
+          role: { in: ['USER', 'ASSISTANT'] },
+        },
+        select: { conversationId: true, role: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      // Group messages by conversation
+      const byConversation = new Map<string, typeof messages>();
+      for (const msg of messages) {
+        const list = byConversation.get(msg.conversationId) ?? [];
+        list.push(msg);
+        byConversation.set(msg.conversationId, list);
+      }
+
+      const deltas: number[] = [];
+      for (const msgs of byConversation.values()) {
+        for (let i = 0; i < msgs.length - 1; i++) {
+          if (msgs[i].role === 'USER' && msgs[i + 1].role === 'ASSISTANT') {
+            const deltaMs = msgs[i + 1].createdAt.getTime() - msgs[i].createdAt.getTime();
+            if (deltaMs >= 0) {
+              deltas.push(deltaMs);
+            }
+          }
+        }
+      }
+
+      if (deltas.length > 0) {
+        const avgMs = deltas.reduce((sum, d) => sum + d, 0) / deltas.length;
+        avgResponseSeconds = Math.round(avgMs / 1000);
+      }
+    }
+
+    return {
+      totalChatbots,
+      totalSessions,
+      activeChatbots,
+      inactiveChatbots: totalChatbots - activeChatbots,
+      avgResponseSeconds,
+    };
+  }
 }

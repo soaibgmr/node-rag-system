@@ -62,6 +62,15 @@ export class ChatbotService {
     });
   }
 
+  async getChatbotStats(input: RequestAccessInput) {
+    const isAdmin = input.roles.includes('ADMIN');
+
+    return this.chatbotRepository.getChatbotStats({
+      ownerId: input.ownerId,
+      isAdmin,
+    });
+  }
+
   async getChatbot(ownerId: string, chatbotId: string, roles: string[] = []) {
     const chatbot = await this.chatbotRepository.findChatbotByRequester({
       chatbotId,

@@ -23,6 +23,7 @@ router.use(authenticate);
 
 router.post('/', validate({ body: createChatbotSchema }), chatbotController.createChatbot);
 router.get('/', chatbotController.listChatbots);
+router.get('/stats', chatbotController.getChatbotStats);
 router.get('/:chatbotId', validate({ params: chatbotIdParamsSchema }), chatbotController.getChatbot);
 router.patch('/:chatbotId', validate({ params: chatbotIdParamsSchema, body: updateChatbotSchema }), chatbotController.updateChatbot);
 router.delete('/:chatbotId', validate({ params: chatbotIdParamsSchema }), chatbotController.archiveChatbot);

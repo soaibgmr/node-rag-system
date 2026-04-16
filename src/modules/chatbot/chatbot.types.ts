@@ -44,6 +44,14 @@ export interface TriggerIngestionDto {
   sourceId: string;
 }
 
+export interface ChatbotStatsDto {
+  totalChatbots: number;
+  totalSessions: number;
+  activeChatbots: number;
+  inactiveChatbots: number;
+  avgResponseSeconds: number | null;
+}
+
 export interface PublicChatRequestDto {
   publicKey?: string;
   chatbotId?: string;

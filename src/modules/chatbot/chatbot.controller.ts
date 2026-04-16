@@ -23,6 +23,14 @@ export class ChatbotController {
     return ok(req, res, data);
   });
 
+  public getChatbotStats = asyncHandler(async (req: Request, res: Response) => {
+    const data = await this.chatbotService.getChatbotStats({
+      ownerId: req.user!.userId,
+      roles: req.user?.roles ?? [],
+    });
+    return ok(req, res, data);
+  });
+
   public getChatbot = asyncHandler(async (req: Request, res: Response) => {
     const chatbotId = String(req.params.chatbotId);
     const data = await this.chatbotService.getChatbot(req.user!.userId, chatbotId, req.user?.roles ?? []);
