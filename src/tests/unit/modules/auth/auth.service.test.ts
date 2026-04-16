@@ -313,7 +313,7 @@ describe('AuthService', () => {
       expect(mockEmailService.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'test@example.com',
-          subject: 'Welcome to Cricko!',
+          subject: 'Welcome to Chatbot!',
         })
       );
     });

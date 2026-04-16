@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import container from '../../config/ioc.config';
 import { TYPES_COMMON } from '../../config/ioc.types';
 import { PrismaService } from '../../services/prisma.service';
-import { IngestionStatus, MessageRole, Prisma, SourceType } from '../../prisma/generated/prisma/client';
+import { ChatbotStatus, IngestionStatus, MessageRole, Prisma, SourceType } from '../../prisma/generated/prisma/client';
 
 @injectable()
 export class ChatbotRepository {
@@ -20,6 +20,7 @@ export class ChatbotRepository {
     chunkSize: number;
     chunkOverlap: number;
     maxContextItems: number;
+    status: ChatbotStatus;
   }) {
     return this.prisma.chatbot.create({
       data,
@@ -29,14 +30,27 @@ export class ChatbotRepository {
     });
   }
 
-  listChatbots(ownerId: string) {
+  listChatbots(input: { ownerId: string; isAdmin: boolean }) {
+    const where: Prisma.ChatbotWhereInput = input.isAdmin
+      ? {
+          isArchived: false,
+        }
+      : {
+          ownerId: input.ownerId,
+          isArchived: false,
+        };
+
     return this.prisma.chatbot.findMany({
-      where: {
-        ownerId,
-        isArchived: false,
-      },
+      where,
       include: {
         domains: true,
+        owner: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -44,13 +58,20 @@ export class ChatbotRepository {
     });
   }
 
-  findChatbotByOwner(chatbotId: string, ownerId: string) {
+  findChatbotByRequester(input: { chatbotId: string; ownerId: string; isAdmin: boolean }) {
+    const where: Prisma.ChatbotWhereInput = input.isAdmin
+      ? {
+          id: input.chatbotId,
+          isArchived: false,
+        }
+      : {
+          id: input.chatbotId,
+          ownerId: input.ownerId,
+          isArchived: false,
+        };
+
     return this.prisma.chatbot.findFirst({
-      where: {
-        id: chatbotId,
-        ownerId,
-        isArchived: false,
-      },
+      where,
       include: {
         domains: true,
       },
@@ -97,7 +118,15 @@ export class ChatbotRepository {
     }
 
     if (input.chatbotId) {
-      orFilters.push({ id: input.chatbotId });
+      // Check if it's a valid UUID before adding to filter
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(input.chatbotId)) {
+        orFilters.push({ id: input.chatbotId });
+      } else if (!input.publicKey) {
+        // If it's not a UUID and no publicKey was provided, we can try to match it against publicKey
+        // since some users might pass the publicKey where chatbotId is expected in the "id" route
+        orFilters.push({ publicKey: input.chatbotId });
+      }
     }
 
     if (orFilters.length === 0) {
@@ -107,6 +136,7 @@ export class ChatbotRepository {
     return this.prisma.chatbot.findFirst({
       where: {
         isArchived: false,
+        status: ChatbotStatus.PUBLISHED,
         OR: orFilters,
       },
       include: {
@@ -119,24 +149,38 @@ export class ChatbotRepository {
     });
   }
 
-  updateChatbot(chatbotId: string, ownerId: string, data: Record<string, unknown>) {
+  updateChatbot(input: { chatbotId: string; ownerId: string; isAdmin: boolean }, data: Record<string, unknown>) {
+    const where: Prisma.ChatbotWhereInput = input.isAdmin
+      ? {
+          id: input.chatbotId,
+          isArchived: false,
+        }
+      : {
+          id: input.chatbotId,
+          ownerId: input.ownerId,
+          isArchived: false,
+        };
+
     return this.prisma.chatbot.updateMany({
-      where: {
-        id: chatbotId,
-        ownerId,
-        isArchived: false,
-      },
+      where,
       data,
     });
   }
 
-  archiveChatbot(chatbotId: string, ownerId: string) {
+  archiveChatbot(input: { chatbotId: string; ownerId: string; isAdmin: boolean }) {
+    const where: Prisma.ChatbotWhereInput = input.isAdmin
+      ? {
+          id: input.chatbotId,
+          isArchived: false,
+        }
+      : {
+          id: input.chatbotId,
+          ownerId: input.ownerId,
+          isArchived: false,
+        };
+
     return this.prisma.chatbot.updateMany({
-      where: {
-        id: chatbotId,
-        ownerId,
-        isArchived: false,
-      },
+      where,
       data: {
         isArchived: true,
       },

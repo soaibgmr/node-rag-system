@@ -36,9 +36,23 @@ app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// app.use(
+//   cors({
+//     origin: appConfig.cors.origin,
+//     credentials: true,
+//   })
+// );
 app.use(
   cors({
-    origin: appConfig.cors.origin,
+    origin: (origin, callback) => {
+      // Allow if no origin (like server-to-server) or matches allowed patterns
+      if (!origin || origin === 'null' || origin.includes('localhost') || origin.includes('192.168.')) {
+        callback(null, true);
+      } else {
+        // Fallback to the configured origin from .env
+        callback(null, appConfig.cors.origin);
+      }
+    },
     credentials: true,
   })
 );

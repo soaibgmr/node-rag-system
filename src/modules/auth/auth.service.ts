@@ -112,14 +112,14 @@ export class AuthService {
   async sendWelcomeEmail(email: string, username: string): Promise<void> {
     await this.emailService.sendEmail({
       to: email,
-      subject: 'Welcome to Cricko!',
-      body: `Welcome, ${username}! Thank you for joining Cricko.`,
+      subject: 'Welcome to Chatbot!',
+      body: `Welcome, ${username}! Thank you for joining Chatbot.`,
       html: `
         <h1>Welcome, ${username}!</h1>
-        <p>Thank you for joining Cricko. We're excited to have you on board!</p>
+        <p>Thank you for joining Chatbot. We're excited to have you on board!</p>
         <p>If you have any questions, feel free to reach out to our support team.</p>
         <br/>
-        <p>Best regards,<br/>The Cricko Team</p>
+        <p>Best regards,<br/>The Chatbot Team</p>
       `,
     });
   }
@@ -135,7 +135,7 @@ export class AuthService {
         <p>We noticed a new login to your account${ipAddress ? ` from IP: ${ipAddress}` : ''}.</p>
         <p>If this wasn't you, please secure your account immediately by changing your password.</p>
         <br/>
-        <p>Best regards,<br/>The Cricko Team</p>
+        <p>Best regards,<br/>The Chatbot Team</p>
       `,
     });
   }

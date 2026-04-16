@@ -28,6 +28,7 @@ export const createChatbotSchema = z.object({
   chunkSize: z.int().min(200).max(4000).optional(),
   chunkOverlap: z.int().min(0).max(1000).optional(),
   maxContextItems: z.int().min(1).max(20).optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED']).optional(),
 });
 
 export const updateChatbotSchema = createChatbotSchema.partial();
@@ -75,7 +76,7 @@ export const createSourceSchema = z
 export const publicChatSchema = z
   .object({
     publicKey: z.string().min(8).max(255).optional(),
-    chatbotId: z.uuid('Invalid chatbot id').optional(),
+    chatbotId: z.string().min(8).max(255).optional(), // Changed from z.uuid() to string to allow publicKey as chatbotId
     message: z.string().min(1).max(8000),
     conversationId: z.uuid('Invalid conversation id').optional(),
     origin: z.string().optional(),

@@ -18,6 +18,11 @@ enum MessageRole {
   SYSTEM
 }
 
+enum ChatbotStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model Chatbot {
   id              String   @id @default(uuid()) @map("id") @db.Uuid
   ownerId         String   @map("owner_id") @db.Uuid
@@ -30,8 +35,9 @@ model Chatbot {
   topK            Int      @default(4) @map("top_k")
   chunkSize       Int      @default(1000) @map("chunk_size")
   chunkOverlap    Int      @default(150) @map("chunk_overlap")
-  maxContextItems Int      @default(6) @map("max_context_items")
-  isArchived      Boolean  @default(false) @map("is_archived")
+  maxContextItems Int           @default(6) @map("max_context_items")
+  status          ChatbotStatus @default(DRAFT) @map("status")
+  isArchived      Boolean       @default(false) @map("is_archived")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)

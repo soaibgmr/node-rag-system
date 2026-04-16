@@ -1,3 +1,5 @@
+export type ChatbotStatusDto = 'DRAFT' | 'PUBLISHED';
+
 export interface CreateChatbotDto {
   name: string;
   description?: string;
@@ -7,6 +9,7 @@ export interface CreateChatbotDto {
   chunkSize?: number;
   chunkOverlap?: number;
   maxContextItems?: number;
+  status?: ChatbotStatusDto;
 }
 
 export interface UpdateChatbotDto {
@@ -18,6 +21,7 @@ export interface UpdateChatbotDto {
   chunkSize?: number;
   chunkOverlap?: number;
   maxContextItems?: number;
+  status?: ChatbotStatusDto;
 }
 
 export interface AddChatbotDomainDto {

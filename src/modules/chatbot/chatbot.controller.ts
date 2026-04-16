@@ -16,26 +16,29 @@ export class ChatbotController {
   });
 
   public listChatbots = asyncHandler(async (req: Request, res: Response) => {
-    const data = await this.chatbotService.listChatbots(req.user!.userId);
+    const data = await this.chatbotService.listChatbots({
+      ownerId: req.user!.userId,
+      roles: req.user?.roles ?? [],
+    });
     return ok(req, res, data);
   });
 
   public getChatbot = asyncHandler(async (req: Request, res: Response) => {
     const chatbotId = String(req.params.chatbotId);
-    const data = await this.chatbotService.getChatbot(req.user!.userId, chatbotId);
+    const data = await this.chatbotService.getChatbot(req.user!.userId, chatbotId, req.user?.roles ?? []);
     return ok(req, res, data);
   });
 
   public updateChatbot = asyncHandler(async (req: Request, res: Response) => {
     const chatbotId = String(req.params.chatbotId);
     const payload = req.body as UpdateChatbotInput;
-    const data = await this.chatbotService.updateChatbot(req.user!.userId, chatbotId, payload);
+    const data = await this.chatbotService.updateChatbot(req.user!.userId, chatbotId, payload, req.user?.roles ?? []);
     return ok(req, res, data);
   });
 
   public archiveChatbot = asyncHandler(async (req: Request, res: Response) => {
     const chatbotId = String(req.params.chatbotId);
-    const data = await this.chatbotService.archiveChatbot(req.user!.userId, chatbotId);
+    const data = await this.chatbotService.archiveChatbot(req.user!.userId, chatbotId, req.user?.roles ?? []);
     return ok(req, res, data);
   });
 

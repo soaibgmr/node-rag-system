@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import container from '../../config/ioc.config';
 import { TYPES_CHATBOT, TYPES_RAG_INTEGRATIONS } from '../../config/ioc.types';
 import { ChatbotRepository } from './chatbot.repository';
-import { MessageRole, SourceType, IngestionStatus } from '../../prisma/generated/prisma/client';
+import { ChatbotStatus, MessageRole, SourceType, IngestionStatus } from '../../prisma/generated/prisma/client';
 import { BadRequestError, ConflictError, ErrorCode, ForbiddenError, InternalServerError, NotFoundError } from '../../utils/errors';
 import appConfig from '../../config/app.config';
 import { LlmService, VectorStoreService, UrlIngestionService, DocumentExtractionService, VectorMatch } from '../../integrations/rag';
@@ -17,6 +17,11 @@ import type {
   PublicChatResponseDto,
   UpdateChatbotDto,
 } from './chatbot.types';
+
+interface RequestAccessInput {
+  ownerId: string;
+  roles: string[];
+}
 
 @injectable()
 export class ChatbotService {
@@ -44,35 +49,61 @@ export class ChatbotService {
       chunkSize: dto.chunkSize ?? appConfig.rag.defaults.chunkSize,
       chunkOverlap: dto.chunkOverlap ?? appConfig.rag.defaults.chunkOverlap,
       maxContextItems: dto.maxContextItems ?? appConfig.rag.defaults.maxContextItems,
+      status: dto.status === 'PUBLISHED' ? ChatbotStatus.PUBLISHED : ChatbotStatus.DRAFT,
     });
   }
 
-  async listChatbots(ownerId: string) {
-    return this.chatbotRepository.listChatbots(ownerId);
+  async listChatbots(input: RequestAccessInput) {
+    const isAdmin = input.roles.includes('ADMIN');
+
+    return this.chatbotRepository.listChatbots({
+      ownerId: input.ownerId,
+      isAdmin,
+    });
   }
 
-  async getChatbot(ownerId: string, chatbotId: string) {
-    const chatbot = await this.chatbotRepository.findChatbotByOwner(chatbotId, ownerId);
+  async getChatbot(ownerId: string, chatbotId: string, roles: string[] = []) {
+    const chatbot = await this.chatbotRepository.findChatbotByRequester({
+      chatbotId,
+      ownerId,
+      isAdmin: this.isAdmin(roles),
+    });
+
     if (!chatbot) {
       throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
     }
+
     return chatbot;
   }
 
-  async updateChatbot(ownerId: string, chatbotId: string, dto: UpdateChatbotDto) {
-    await this.getChatbot(ownerId, chatbotId);
+  async updateChatbot(ownerId: string, chatbotId: string, dto: UpdateChatbotDto, roles: string[] = []) {
+    const isAdmin = this.isAdmin(roles);
+    await this.getChatbot(ownerId, chatbotId, roles);
 
-    await this.chatbotRepository.updateChatbot(chatbotId, ownerId, {
-      ...dto,
-    });
+    await this.chatbotRepository.updateChatbot(
+      {
+        chatbotId,
+        ownerId,
+        isAdmin,
+      },
+      {
+        ...dto,
+      }
+    );
 
-    return this.getChatbot(ownerId, chatbotId);
+    return this.getChatbot(ownerId, chatbotId, roles);
   }
 
-  async archiveChatbot(ownerId: string, chatbotId: string) {
-    await this.getChatbot(ownerId, chatbotId);
+  async archiveChatbot(ownerId: string, chatbotId: string, roles: string[] = []) {
+    const isAdmin = this.isAdmin(roles);
+    await this.getChatbot(ownerId, chatbotId, roles);
 
-    await this.chatbotRepository.archiveChatbot(chatbotId, ownerId);
+    await this.chatbotRepository.archiveChatbot({
+      chatbotId,
+      ownerId,
+      isAdmin,
+    });
+
     return { chatbotId, archived: true };
   }
 
@@ -407,13 +438,21 @@ export class ChatbotService {
   private normalizeDomain(domain: string): string {
     const clean = domain.trim().toLowerCase();
 
-    const host = clean.startsWith('http://') || clean.startsWith('https://') ? new URL(clean).hostname : clean;
-
-    if (!host || host.length < 3) {
-      throw new BadRequestError('Invalid domain value', ErrorCode.INVALID_INPUT);
+    // If it's just an IP or hostname without protocol, return it
+    if (!clean.includes('://')) {
+      return clean;
     }
 
-    return host;
+    try {
+      const url = new URL(clean);
+      const host = url.host; // includes port if present
+      if (!host || host.length < 3) {
+        return clean;
+      }
+      return host;
+    } catch {
+      return clean;
+    }
   }
 
   private validateAllowedOrigin(allowedDomains: string[], origin?: string): void {
@@ -425,13 +464,21 @@ export class ChatbotService {
       throw new ForbiddenError('Origin is required for this chatbot', ErrorCode.FORBIDDEN);
     }
 
-    const host = this.normalizeDomain(origin);
+    console.log(`[CORS DEBUG] Validating origin: ${origin} against domains: ${allowedDomains.join(', ')}`);
 
-    const match = allowedDomains.some((domain) => host === domain || host.endsWith(`.${domain}`));
+    const host = this.normalizeDomain(origin);
+    console.log(`[CORS DEBUG] Normalized host: ${host}`);
+
+    const match = allowedDomains.some((domain) => {
+      const allowed = domain.toLowerCase().trim();
+      return host === allowed || host.endsWith(`.${allowed}`) || (host.includes(':') && host.split(':')[0] === allowed);
+    });
 
     if (!match) {
+      console.error(`[CORS DEBUG] Validation failed for host: ${host}`);
       throw new ForbiddenError('Origin is not allowed for this chatbot', ErrorCode.FORBIDDEN);
     }
+    console.log(`[CORS DEBUG] Validation successful for host: ${host}`);
   }
 
   private async resolvePublicChatbot(identifier: { publicKey?: string; chatbotId?: string }) {
@@ -439,6 +486,10 @@ export class ChatbotService {
 
     if (!chatbot) {
       throw new NotFoundError('Chatbot not found', ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    if (chatbot.status !== ChatbotStatus.PUBLISHED) {
+      throw new ForbiddenError('Chatbot is in draft mode', ErrorCode.FORBIDDEN);
     }
 
     return chatbot;
@@ -457,6 +508,10 @@ export class ChatbotService {
         score: match.score,
       };
     });
+  }
+
+  private isAdmin(roles: string[]): boolean {
+    return roles.includes('ADMIN');
   }
 
   private buildPublicKey(): string {
