@@ -30,7 +30,9 @@ export class ChatbotRepository {
     });
   }
 
-  listChatbots(input: { ownerId: string; isAdmin: boolean }) {
+  listChatbots(input: { ownerId: string; isAdmin: boolean; search?: string }) {
+    const normalizedSearch = input.search?.trim();
+
     const where: Prisma.ChatbotWhereInput = input.isAdmin
       ? {
           isArchived: false,
@@ -39,6 +41,23 @@ export class ChatbotRepository {
           ownerId: input.ownerId,
           isArchived: false,
         };
+
+    if (normalizedSearch) {
+      where.OR = [
+        {
+          name: {
+            contains: normalizedSearch,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: normalizedSearch,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
 
     return this.prisma.chatbot.findMany({
       where,

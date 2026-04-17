@@ -16,9 +16,12 @@ export class ChatbotController {
   });
 
   public listChatbots = asyncHandler(async (req: Request, res: Response) => {
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+
     const data = await this.chatbotService.listChatbots({
       ownerId: req.user!.userId,
       roles: req.user?.roles ?? [],
+      search,
     });
     return ok(req, res, data);
   });

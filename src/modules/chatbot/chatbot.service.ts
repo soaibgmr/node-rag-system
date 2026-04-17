@@ -22,6 +22,7 @@ import type {
 interface RequestAccessInput {
   ownerId: string;
   roles: string[];
+  search?: string;
 }
 
 @injectable()
@@ -60,6 +61,7 @@ export class ChatbotService {
     return this.chatbotRepository.listChatbots({
       ownerId: input.ownerId,
       isAdmin,
+      search: input.search,
     });
   }
 
