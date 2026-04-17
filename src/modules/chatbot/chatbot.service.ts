@@ -15,6 +15,7 @@ import type {
   CreateKnowledgeSourceDto,
   PublicChatRequestDto,
   PublicChatResponseDto,
+  SourceTrainingDataDto,
   UpdateChatbotDto,
 } from './chatbot.types';
 
@@ -191,6 +192,53 @@ export class ChatbotService {
   async listSources(ownerId: string, chatbotId: string) {
     await this.getChatbot(ownerId, chatbotId);
     return this.chatbotRepository.listSources(chatbotId);
+  }
+
+  async getSourceTrainingData(ownerId: string, chatbotId: string, sourceId: string): Promise<SourceTrainingDataDto> {
+    await this.getChatbot(ownerId, chatbotId);
+
+    const source = await this.chatbotRepository.findSource(chatbotId, sourceId);
+    if (!source) {
+      throw new NotFoundError('Source not found', ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    const [latestJob, chunks] = await Promise.all([
+      this.chatbotRepository.findLatestIngestionJobBySource(chatbotId, sourceId),
+      this.chatbotRepository.listChunksBySource(sourceId),
+    ]);
+
+    return {
+      source: {
+        id: source.id,
+        chatbotId: source.chatbotId,
+        type: source.type,
+        title: source.title,
+        url: source.url,
+        fileName: source.fileName,
+        mimeType: source.mimeType,
+        createdAt: source.createdAt,
+        updatedAt: source.updatedAt,
+      },
+      extractedText: source.textBody ?? undefined,
+      latestJob: latestJob
+        ? {
+            id: latestJob.id,
+            status: latestJob.status,
+            failureReason: latestJob.failureReason,
+            chunksCount: latestJob.chunksCount,
+            createdAt: latestJob.createdAt,
+            updatedAt: latestJob.updatedAt,
+            completedAt: latestJob.completedAt,
+          }
+        : undefined,
+      chunks: chunks.map((chunk) => ({
+        id: chunk.id,
+        chunkIndex: chunk.chunkIndex,
+        content: chunk.content,
+        tokenCount: chunk.tokenCount,
+        createdAt: chunk.createdAt,
+      })),
+    };
   }
 
   async removeSource(ownerId: string, chatbotId: string, sourceId: string) {

@@ -44,6 +44,39 @@ export interface TriggerIngestionDto {
   sourceId: string;
 }
 
+export interface SourceTrainingChunkDto {
+  id: string;
+  chunkIndex: number;
+  content: string;
+  tokenCount?: number | null;
+  createdAt?: Date;
+}
+
+export interface SourceTrainingDataDto {
+  source: {
+    id: string;
+    chatbotId: string;
+    type: SourceTypeDto;
+    title: string;
+    url?: string | null;
+    fileName?: string | null;
+    mimeType?: string | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+  };
+  extractedText?: string;
+  latestJob?: {
+    id: string;
+    status: 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELED';
+    failureReason?: string | null;
+    chunksCount: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+    completedAt?: Date | null;
+  };
+  chunks: SourceTrainingChunkDto[];
+}
+
 export interface ChatbotStatsDto {
   totalChatbots: number;
   totalSessions: number;

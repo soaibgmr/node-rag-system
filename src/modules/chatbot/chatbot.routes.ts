@@ -38,6 +38,7 @@ router.post(
   chatbotController.createSource
 );
 router.get('/:chatbotId/sources', validate({ params: chatbotIdParamsSchema }), chatbotController.listSources);
+router.get('/:chatbotId/sources/:sourceId/details', validate({ params: sourceIdParamsSchema }), chatbotController.getSourceTrainingData);
 router.delete('/:chatbotId/sources/:sourceId', validate({ params: sourceIdParamsSchema }), chatbotController.removeSource);
 router.post(
   '/:chatbotId/sources/:sourceId/ingest',

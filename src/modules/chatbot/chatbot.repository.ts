@@ -253,6 +253,18 @@ export class ChatbotRepository {
     });
   }
 
+  findLatestIngestionJobBySource(chatbotId: string, sourceId: string) {
+    return this.prisma.ingestionJob.findFirst({
+      where: {
+        chatbotId,
+        sourceId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   deactivateSource(sourceId: string) {
     return this.prisma.knowledgeSource.update({
       where: {

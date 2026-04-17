@@ -77,6 +77,13 @@ export class ChatbotController {
     return ok(req, res, data);
   });
 
+  public getSourceTrainingData = asyncHandler(async (req: Request, res: Response) => {
+    const chatbotId = String(req.params.chatbotId);
+    const sourceId = String(req.params.sourceId);
+    const data = await this.chatbotService.getSourceTrainingData(req.user!.userId, chatbotId, sourceId);
+    return ok(req, res, data);
+  });
+
   public removeSource = asyncHandler(async (req: Request, res: Response) => {
     const chatbotId = String(req.params.chatbotId);
     const sourceId = String(req.params.sourceId);
